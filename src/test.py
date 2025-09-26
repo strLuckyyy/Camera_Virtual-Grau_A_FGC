@@ -1,74 +1,80 @@
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Button
-from matplotlib.collections import LineCollection
 import numpy as np
+import tkinter as tk
 from object import Object3D
 from camera import Camera
+import math
 
-# --- Setup object and camera ---
-obj = Object3D()
-cam = Camera(x=0, y=0, z=5, target=np.array([0, 0, 0]))
-
-# --- Create figure with GridSpec ---
-fig = plt.figure(figsize=(8, 6))
-gs = fig.add_gridspec(5, 6, hspace=0.3, wspace=0.3)
-
-# Drawing axis occupies the top 4 rows
-ax_draw = fig.add_subplot(gs[0:4, :])
-ax_draw.set_aspect('equal')
-ax_draw.set_xlim(0, cam.width)
-ax_draw.set_ylim(0, cam.height)
-
-# --- Function to draw the object ---
-def draw_object():
-    ax_draw.cla()
-    lines = [
-        [cam.project_vertex(obj.vertices[i]), cam.project_vertex(obj.vertices[j])]
-        for i, j in obj.get_edges()
-    ]
-    ax_draw.add_collection(LineCollection(lines, colors='red', linewidths=2))
-    ax_draw.set(aspect='equal', xlim=(0, cam.width), ylim=(0, cam.height))
-    fig.canvas.draw_idle()
-
-# --- Camera movement ---
-def move_camera(dtheta=0.0, dphi=0.0, dradius=0.0):
-    cam.orbit_camera(d_theta=dtheta, d_phi=dphi, d_radius=dradius)
-    draw_object()
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.title("Camera Test")
     
-def toggle_projection(event):
-    cam.toggle_projection()
-    draw_object()
+    WIDTH, HEIGHT = 800, 600
+    canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT, bg="black")
+    canvas.pack()
+    
+    obj = Object3D()
+    cam = Camera(width=WIDTH, height=HEIGHT, target=obj.get_position())
 
-# --- Button layout using GridSpec ---
-button_axes = {
-    "Up":       [0.45, 0.15, 0.1, 0.06],
-    "Down":     [0.45, 0.05, 0.1, 0.06],
-    "Left":     [0.33, 0.1, 0.1, 0.06],
-    "Right":    [0.57, 0.1, 0.1, 0.06],
-    "Forward":  [0.76, 0.15, 0.1, 0.06],
-    "Back":     [0.76, 0.05, 0.1, 0.06],
-    "Projection":[0.05, 0.1, 0.15, 0.06]
-}
+    def draw():
+        canvas.delete("all")
+        verts = obj.get_vertices()
+        projected = [cam.project_vertex(v) for v in verts]
+        for edge in obj.get_edges():
+            p1 = projected[edge[0]]
+            p2 = projected[edge[1]]
+            canvas.create_line(p1[0], p1[1], p2[0], p2[1], fill="red")
 
-val = .3
+    # Botões
+    btns = tk.Frame(root)
+    btns.pack()
 
-button_callbacks = {
-    "Up": lambda event: move_camera(dphi=val),
-    "Down": lambda event: move_camera(dphi=-val),
-    "Left": lambda event: move_camera(dtheta=-val),
-    "Right": lambda event: move_camera(dtheta=val),
-    "Forward": lambda event: move_camera(dradius=-val),
-    "Back": lambda event: move_camera(dradius=val),
-    "Projection": toggle_projection
-}
+    value = .2
 
-buttons = []
-for label, ax_loc in button_axes.items():
-    ax_btn = fig.add_axes((ax_loc[0], ax_loc[1], ax_loc[2], ax_loc[3]))
-    btn = Button(ax_btn, label)
-    btn.on_clicked(button_callbacks[label])
-    buttons.append(btn)
+    tk.Button(btns, text="↑ Cima", command=lambda: [cam.orbit(d_phi=value), draw()]).grid(row=0, column=1)
+    tk.Button(btns, text="↓ Baixo", command=lambda: [cam.orbit(d_phi=-value), draw()]).grid(row=2, column=1)
+    tk.Button(btns, text="← Esquerda", command=lambda: [cam.orbit(d_theta=-value), draw()]).grid(row=1, column=0)
+    tk.Button(btns, text="→ Direita", command=lambda: [cam.orbit(d_theta=value), draw()]).grid(row=1, column=2)
+    
+    tk.Button(btns, text="Roll ←", command=lambda: [cam.roll(-value), draw()]).grid(row=0, column=0)
+    tk.Button(btns, text="Roll →", command=lambda: [cam.roll(value), draw()]).grid(row=0, column=2)
+    
+    tk.Button(btns, text="Reset Cam", command=lambda: [cam.reset(), draw()]).grid(row=1, column=3)
+    tk.Button(btns, text="Reset Obj", command=lambda: [obj.reset(), draw()]).grid(row=2, column=3)
+    
+    tk.Button(btns, text="Mudar Projeção", command=lambda: [cam.toggle_projection(), draw()]).grid(row=1, column=1)
+    
+    # traslada a camera
+    tk.Button(btns, text="cam x", command=lambda: [cam.translate([value, 0, 0]), draw()]).grid(row=3, column=0)
+    tk.Button(btns, text="cam y", command=lambda: [cam.translate([0, value, 0]), draw()]).grid(row=3, column=1)
+    tk.Button(btns, text="cam z", command=lambda: [cam.translate([0, 0, value]), draw()]).grid(row=3, column=2)
+    
+    # traslada o objeto
+    tk.Button(btns, text="obj t ←", command=lambda: [obj.translate([value, 0, 0]), draw()]).grid(row=4, column=0)
+    tk.Button(btns, text="obj t ↑", command=lambda: [obj.translate([0, value, 0]), draw()]).grid(row=4, column=1)
+    tk.Button(btns, text="obj t f", command=lambda: [obj.translate([0, 0, value]), draw()]).grid(row=4, column=2)
+    
+    # rotaciona o objeto
+    tk.Button(btns, text="obj r x", command=lambda: [obj.pitch(value), draw()]).grid(row=5, column=0)
+    tk.Button(btns, text="obj r y", command=lambda: [obj.yaw(value), draw()]).grid(row=5, column=1)
+    tk.Button(btns, text="obj r z", command=lambda: [obj.roll(value), draw()]).grid(row=5, column=2)
+    
+    # escala o objeto
+    tk.Button(btns, text="obj s +", command=lambda: [obj.scale([1.1, 1.1, 1.1]), draw()]).grid(row=6, column=0)
+    tk.Button(btns, text="obj s -", command=lambda: [obj.scale([0.9, 0.9, 0.9]), draw()]).grid(row=6, column=2)
+    
+    # Exemplo: muda para uma viewport menor no centro do canvas
+    def set_custom_viewport():
+        cam.set_viewport(200*2, 600*2, 150*2, 450*2)
+        draw()
 
-# --- Draw for the first time ---
-draw_object()
-plt.show()
+    # Exemplo: volta para a viewport padrão (igual ao window [-1,1])
+    def reset_viewport():
+        cam.set_viewport(0, cam.width, 0, cam.height)
+        draw()
+
+    # Adicionando os botões ao seu frame
+    tk.Button(btns, text="Viewport Custom", command=set_custom_viewport).grid(row=7, column=1)
+    tk.Button(btns, text="Viewport Reset", command=reset_viewport).grid(row=7, column=3)
+
+    draw()
+    root.mainloop()
