@@ -46,6 +46,27 @@ class Camera:
         self.radius = np.linalg.norm(self.position - self.target)
         self.theta = 0.0  # angle around Y axis
         self.phi = 0.0    # angle from XZ plane
+
+
+    def set_perspective_params(self, fov_degrees, near, far):
+        """Define os parâmetros para a projeção perspectiva."""
+        self.f = math.radians(fov_degrees)
+        self.near = near
+        self.far = far
+        self.projection = ProjectionType.PERSPECTIVE
+        print(f"Projeção alterada para Perspectiva (FoV={fov_degrees}°, Near={near}, Far={far}).")
+
+
+    def set_orthographic_params(self, left, right, bottom, top):
+        """Define os parâmetros para a projeção paralela (ortográfica)."""
+        self.xminw = left
+        self.xmaxw = right
+        self.yminw = bottom
+        self.ymaxw = top
+        self.projection = ProjectionType.ORTHOGRAPHIC
+        print(f"Projeção alterada para Paralela (L={left}, R={right}, B={bottom}, T={top}).")
+
+
     
     def reset(self):
         self.__init__(width=self.width, height=self.height)
