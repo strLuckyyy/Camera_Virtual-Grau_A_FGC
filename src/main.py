@@ -38,6 +38,7 @@ def menu_manipular_objeto():
         print("3. Rotação em X")
         print("4. Rotação em Y")
         print("5. Rotação em Z")
+        print("6. Resetar Objeto")
         print("0. Voltar ao menu principal")
 
         sub_choice = input("Escolha uma opção: ")
@@ -88,6 +89,13 @@ def menu_manipular_objeto():
                 draw() # <--- CORRETO: Chamar draw() após a ação
             except ValueError:
                 print("Entrada inválida. Por favor, insira um número.")
+
+
+        elif sub_choice == '6':
+            print("Objeto resetado para o estado original.")
+            obj.reset()
+            draw()
+
 
         elif sub_choice == '0':
             break # Simplesmente sai do loop
@@ -290,7 +298,6 @@ def main_menu():
         print("2. Manipular a câmera")
         print("3. Modificar projeção")
         print("4. Modificar mapeamento")
-        print("5. Visualizar objeto")
         print("0. Sair")
         
         choice = input("Escolha uma opção: ")
@@ -312,10 +319,6 @@ def main_menu():
             # Chamar a função para mudar mapeamento da câmera (área de visualização)
             menu_modificar_mapeamento()
 
-
-        elif choice == '5':
-            print("Exibindo/Atualizando objeto...")
-            draw()
 
         elif choice == '0':
             break
