@@ -38,6 +38,7 @@ def menu_manipular_objeto():
         print("3. Rotação em X")
         print("4. Rotação em Y")
         print("5. Rotação em Z")
+        print("6. Resetar Posição do Objeto")
         print("0. Voltar ao menu principal")
 
         sub_choice = input("Escolha uma opção: ")
@@ -88,6 +89,11 @@ def menu_manipular_objeto():
                 draw() # <--- CORRETO: Chamar draw() após a ação
             except ValueError:
                 print("Entrada inválida. Por favor, insira um número.")
+
+        elif sub_choice == '6': # Resetar Objeto
+            print("Posição do objeto resetada.")
+            obj.reset()
+            draw()
 
         elif sub_choice == '0':
             break # Simplesmente sai do loop
